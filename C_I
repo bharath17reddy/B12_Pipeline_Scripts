@@ -1,0 +1,62 @@
+pipeline{
+agent any
+parameters {
+  choice choices: ['master', 'Dev'], description: 'Please select the beanch', name: 'Branch'
+  booleanParam description: 'Please select to deploy the project on master', name: 'Deploy'
+  string description: 'Please select the Environment',name: 'Environment'
+}
+stages{
+ stage("GitHub or Cloning"){
+  steps{
+  script {
+  echo "Cloning Started"
+  git credentialsId: 'Git_Credentials', url: 'https://github.com/bharath17reddy/hdfc_new.git' 
+  //* for branching concept
+ // git branch: '$Branch', credentialsId: 'Git_Credentials', url: 'https://github.com/bharath17reddy/hdfc_new.git'
+  echo "Cloning Completed"
+         }
+       }
+    }
+  stage("Maven"){
+   steps{
+   script{
+   echo "Started converting into package"
+   sh 'mvn clean package'
+   echo "Package Converted"
+                }
+          } 
+        }
+  stage("Sonar-Scanner"){
+   steps{
+   script{
+    echo "Scanning started"
+//* we will URL of Sonar-Scanner
+echo "Scaninng Completed"
+                      }
+           }
+        }
+
+  stage("Sonar-Qubes"){
+   steps{
+   script{
+    echo "Qube started"
+//* we will URL of Sonar-Qubes
+    echo "Qube Completed"
+                      }
+           }
+        }  
+   stage("Calling CD job"){
+    steps{
+    script{
+           build job: 'continuous-deployment', parameters: [
+           string(name: 'Branch', value :"${params.Branch}"),
+           string(name: 'Deploy', value :"${params.Deploy}"),
+           string(name: 'Environment', value :"${params.Environment}")]
+          }
+       }
+     }
+}
+}
+
+
+
